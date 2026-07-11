@@ -6,6 +6,30 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__Database: Host=database;Port=5432;Database=tarkov_assistant;Username=tarkov_assistant;Password=tarkov_assistant
+    depends_on:
+      database:
+        condition: service_healthy
     ports:
       - "5080:8080"
     restart: unless-stopped
+
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: tarkov_assistant
+      POSTGRES_USER: tarkov_assistant
+      POSTGRES_PASSWORD: tarkov_assistant
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tarkov_assistant -d tarkov_assistant"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+    volumes:
+      - tarkov-assistant-postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  tarkov-assistant-postgres:

@@ -1,11 +1,16 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
 using Scalar.AspNetCore;
 using TarkovAssistant.Backend.Configuration;
+using TarkovAssistant.Backend.Database;
 using TarkovAssistant.Backend.Infrastructure;
 using TarkovAssistant.Backend.Integrations.TarkovDev;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var databaseConnectionString = builder.Configuration.GetConnectionString("Database")
+    ?? throw new InvalidOperationException("ConnectionStrings:Database must be configured.");
 
 builder.Logging.ClearProviders();
 builder.Logging.AddSimpleConsole(options =>
@@ -44,11 +49,18 @@ builder.Services.AddHttpClient<ITarkovDevClient, TarkovDevClient>((services, cli
 
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.AddDbContext<TarkovAssistantDbContext>(options => options.UseNpgsql(databaseConnectionString));
 builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
 var app = builder.Build();
+
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var database = scope.ServiceProvider.GetRequiredService<TarkovAssistantDbContext>();
+    await database.Database.MigrateAsync().ConfigureAwait(false);
+}
 
 app.UseMiddleware<EndpointLoggingMiddleware>();
 app.UseExceptionHandler();
