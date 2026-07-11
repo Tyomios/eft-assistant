@@ -2,7 +2,10 @@ using TarkovAssistant.Backend.Integrations.TarkovDev;
 
 namespace TarkovAssistant.Backend.Features.TarkovData;
 
-internal sealed class TarkovQueryParameters
+/// <summary>
+/// Defines optional localization, paging, and item filtering parameters accepted by Tarkov API controllers.
+/// </summary>
+public sealed class TarkovQueryParameters
 {
     /// <summary>Gets the Tarkov.dev language code.</summary>
     public string? Language { get; init; }

@@ -14,7 +14,7 @@ dotnet restore TarkovAssistant.sln
 dotnet run --project src/TarkovAssistant.Backend
 ```
 
-The API listens on `http://localhost:5080`. OpenAPI JSON is available at `http://localhost:5080/openapi/v1.json`.
+The API listens on `http://localhost:5080`. Opening this address in a browser redirects to the Scalar API reference at `http://localhost:5080/scalar/v1`. OpenAPI JSON is available at `http://localhost:5080/openapi/v1.json`.
 
 ## Run with Docker
 
@@ -22,8 +22,12 @@ The API listens on `http://localhost:5080`. OpenAPI JSON is available at `http:/
 docker compose up --build
 ```
 
+Docker maps host port `5080` to container port `8080`. Use `http://localhost:5080` from the host; `http://localhost:8080` is only the container's internal listening port and is not published directly.
+
 ## Endpoints
 
+- `GET /` — redirects to the Scalar API reference
+- `GET /scalar/v1` — interactive API reference
 - `GET /health`
 - `GET /api/tarkov/items`
 - `GET /api/tarkov/items/{id}`

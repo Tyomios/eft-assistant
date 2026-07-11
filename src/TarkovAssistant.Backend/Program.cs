@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
+using Scalar.AspNetCore;
 using TarkovAssistant.Backend.Configuration;
-using TarkovAssistant.Backend.Features.TarkovData;
 using TarkovAssistant.Backend.Infrastructure;
 using TarkovAssistant.Backend.Integrations.TarkovDev;
 
@@ -46,6 +46,7 @@ builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -53,7 +54,8 @@ app.UseMiddleware<EndpointLoggingMiddleware>();
 app.UseExceptionHandler();
 
 app.MapOpenApi();
+app.MapScalarApiReference();
 app.MapHealthChecks("/health");
-app.MapTarkovDataEndpoints();
+app.MapControllers();
 
 app.Run();

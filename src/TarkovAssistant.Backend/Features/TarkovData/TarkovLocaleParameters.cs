@@ -2,7 +2,10 @@ using TarkovAssistant.Backend.Integrations.TarkovDev;
 
 namespace TarkovAssistant.Backend.Features.TarkovData;
 
-internal sealed class TarkovLocaleParameters
+/// <summary>
+/// Defines optional localization parameters accepted by Tarkov API controllers.
+/// </summary>
+public sealed class TarkovLocaleParameters
 {
     /// <summary>Gets the Tarkov.dev language code.</summary>
     public string? Language { get; init; }
