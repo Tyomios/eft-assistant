@@ -3,13 +3,35 @@ using TarkovAssistant.Backend.Integrations.TarkovDev.Contracts;
 
 namespace TarkovAssistant.Backend.Integrations.TarkovDev;
 
-public sealed class TarkovDevClient(HttpClient httpClient, ILogger<TarkovDevClient> logger)
-    : ITarkovDevClient
+/// <summary>
+/// Retrieves typed reference data from the Tarkov.dev GraphQL API.
+/// </summary>
+public sealed partial class TarkovDevClient : ITarkovDevClient
 {
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<TarkovDevClient> _logger;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TarkovDevClient"/> class.
+    /// </summary>
+    /// <param name="httpClient">The configured HTTP client.</param>
+    /// <param name="logger">The client logger.</param>
+    public TarkovDevClient(HttpClient httpClient, ILogger<TarkovDevClient> logger)
+    {
+        ArgumentNullException.ThrowIfNull(httpClient);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        _httpClient = httpClient;
+        _logger = logger;
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<ItemDto>> GetItemsAsync(
         TarkovDevQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         var data = await SendAsync<ItemsData>(
             TarkovDevQueries.Items,
             new
@@ -25,11 +47,15 @@ public sealed class TarkovDevClient(HttpClient httpClient, ILogger<TarkovDevClie
         return data.Items;
     }
 
+    /// <inheritdoc />
     public async Task<ItemDto?> GetItemAsync(
         string id,
         TarkovDevQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentNullException.ThrowIfNull(query);
+
         var variables = new
         {
             id,
@@ -40,15 +66,22 @@ public sealed class TarkovDevClient(HttpClient httpClient, ILogger<TarkovDevClie
         return data.Item;
     }
 
+    /// <inheritdoc />
     public Task<IReadOnlyList<ItemDto>> GetWeaponsAsync(
         TarkovDevQuery query,
-        CancellationToken cancellationToken) =>
-        GetItemsAsync(query with { ItemType = "gun" }, cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        return GetItemsAsync(query with { ItemType = "gun" }, cancellationToken);
+    }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<AmmoDto>> GetAmmoAsync(
         TarkovDevQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         var data = await SendAsync<AmmoData>(
             TarkovDevQueries.Ammo,
             CreatePageVariables(query),
@@ -57,10 +90,13 @@ public sealed class TarkovDevClient(HttpClient httpClient, ILogger<TarkovDevClie
         return data.Ammo;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<TaskDto>> GetTasksAsync(
         TarkovDevQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         var data = await SendAsync<TasksData>(
             TarkovDevQueries.Tasks,
             CreatePageVariables(query),
@@ -69,10 +105,13 @@ public sealed class TarkovDevClient(HttpClient httpClient, ILogger<TarkovDevClie
         return data.Tasks;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<TraderDto>> GetTradersAsync(
         TarkovDevQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         var data = await SendAsync<TradersData>(
             TarkovDevQueries.Traders,
             CreatePageVariables(query),
@@ -81,10 +120,13 @@ public sealed class TarkovDevClient(HttpClient httpClient, ILogger<TarkovDevClie
         return data.Traders;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<HideoutStationDto>> GetHideoutStationsAsync(
         TarkovDevQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         var data = await SendAsync<HideoutStationsData>(
             TarkovDevQueries.HideoutStations,
             CreatePageVariables(query),
@@ -100,7 +142,7 @@ public sealed class TarkovDevClient(HttpClient httpClient, ILogger<TarkovDevClie
     {
         try
         {
-            using var response = await httpClient.PostAsJsonAsync(
+            using var response = await _httpClient.PostAsJsonAsync(
                 string.Empty,
                 new GraphQlRequest(query, variables),
                 cancellationToken);
@@ -133,7 +175,7 @@ public sealed class TarkovDevClient(HttpClient httpClient, ILogger<TarkovDevClie
         }
         catch (Exception exception)
         {
-            logger.LogWarning(exception, "Request to Tarkov.dev failed after resilience policies were applied");
+            LogRequestFailed(_logger, exception);
             throw new TarkovDevException("Unable to retrieve data from Tarkov.dev.", exception);
         }
     }
@@ -145,4 +187,10 @@ public sealed class TarkovDevClient(HttpClient httpClient, ILogger<TarkovDevClie
         limit = query.Limit,
         offset = query.Offset
     };
+
+    [LoggerMessage(
+        EventId = 3000,
+        Level = LogLevel.Warning,
+        Message = "Request to Tarkov.dev failed after resilience policies were applied")]
+    private static partial void LogRequestFailed(ILogger logger, Exception exception);
 }

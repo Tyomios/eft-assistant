@@ -2,7 +2,7 @@ namespace TarkovAssistant.Backend.Integrations.TarkovDev;
 
 internal static class TarkovDevQueries
 {
-    public const string Items = $$"""
+    internal const string Items = $$"""
         query Items($lang: LanguageCode!, $gameMode: GameMode!, $limit: Int!, $offset: Int!, $type: ItemType!) {
           items(lang: $lang, gameMode: $gameMode, limit: $limit, offset: $offset, type: $type) {
             {{ItemFields}}
@@ -10,7 +10,7 @@ internal static class TarkovDevQueries
         }
         """;
 
-    public const string Item = $$"""
+    internal const string Item = $$"""
         query Item($id: ID!, $lang: LanguageCode!, $gameMode: GameMode!) {
           item(id: $id, lang: $lang, gameMode: $gameMode) {
             {{ItemFields}}
@@ -18,7 +18,7 @@ internal static class TarkovDevQueries
         }
         """;
 
-    public const string Ammo = """
+    internal const string Ammo = """
         query Ammo($lang: LanguageCode!, $gameMode: GameMode!, $limit: Int!, $offset: Int!) {
           ammo(lang: $lang, gameMode: $gameMode, limit: $limit, offset: $offset) {
             item { id name normalizedName shortName iconLink gridImageLink }
@@ -29,7 +29,7 @@ internal static class TarkovDevQueries
         }
         """;
 
-    public const string Tasks = """
+    internal const string Tasks = """
         query Tasks($lang: LanguageCode!, $gameMode: GameMode!, $limit: Int!, $offset: Int!) {
           tasks(lang: $lang, gameMode: $gameMode, limit: $limit, offset: $offset) {
             id name normalizedName experience minPlayerLevel wikiLink taskImageLink factionName kappaRequired lightkeeperRequired
@@ -47,7 +47,7 @@ internal static class TarkovDevQueries
         }
         """;
 
-    public const string Traders = """
+    internal const string Traders = """
         query Traders($lang: LanguageCode!, $gameMode: GameMode!, $limit: Int!, $offset: Int!) {
           traders(lang: $lang, gameMode: $gameMode, limit: $limit, offset: $offset) {
             id name normalizedName description resetTime discount imageLink image4xLink tarkovDataId
@@ -57,7 +57,7 @@ internal static class TarkovDevQueries
         }
         """;
 
-    public const string HideoutStations = """
+    internal const string HideoutStations = """
         query HideoutStations($lang: LanguageCode!, $gameMode: GameMode!, $limit: Int!, $offset: Int!) {
           hideoutStations(lang: $lang, gameMode: $gameMode, limit: $limit, offset: $offset) {
             id name normalizedName imageLink tarkovDataId
