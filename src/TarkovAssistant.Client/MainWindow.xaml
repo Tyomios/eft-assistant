@@ -1,0 +1,185 @@
+<Window
+    x:Class="TarkovAssistant.Client.MainWindow"
+    x:ClassModifier="internal"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="EFT Assistant"
+    Width="900"
+    Height="660"
+    MinWidth="720"
+    MinHeight="480"
+    Background="{StaticResource AppBackgroundBrush}"
+    FontFamily="Segoe UI"
+    Foreground="{StaticResource PrimaryTextBrush}"
+    WindowStartupLocation="CenterScreen">
+    <Grid Margin="40">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="28" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock
+                FontSize="13"
+                FontWeight="SemiBold"
+                Foreground="{StaticResource AccentBrush}"
+                Text="LOCAL-FIRST DESKTOP CLIENT" />
+            <TextBlock
+                Margin="0,8,0,0"
+                FontSize="34"
+                FontWeight="SemiBold"
+                Text="EFT Assistant" />
+            <TextBlock
+                Margin="0,8,0,0"
+                FontSize="15"
+                Foreground="{StaticResource SecondaryTextBrush}"
+                Text="WPF client foundation for offline stash assistance" />
+        </StackPanel>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border
+                Padding="24"
+                Background="{StaticResource PanelBackgroundBrush}"
+                BorderBrush="{StaticResource PanelBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <StackPanel>
+                    <TextBlock
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Foreground="{StaticResource AccentBrush}"
+                        Text="LOCAL IMAGE CACHE" />
+                    <TextBlock
+                        Margin="0,18,0,0"
+                        FontSize="22"
+                        FontWeight="SemiBold"
+                        Text="Reader ready" />
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        Foreground="{StaticResource SecondaryTextBrush}"
+                        Text="Catalog images are read within the current user's local application data boundary, with size and optional SHA-256 validation."
+                        TextWrapping="Wrap" />
+                    <Border
+                        Margin="0,24,0,0"
+                        Padding="12,8"
+                        HorizontalAlignment="Left"
+                        Background="#252D30"
+                        CornerRadius="4">
+                        <TextBlock
+                            FontFamily="Cascadia Mono, Consolas"
+                            FontSize="12"
+                            Text="%LocalAppData%\TarkovAssistant\Catalog" />
+                    </Border>
+                    <TextBlock
+                        Margin="0,24,0,0"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Foreground="{StaticResource AccentBrush}"
+                        Text="GAME WINDOW" />
+                    <Button
+                        Margin="0,10,0,0"
+                        Padding="14,8"
+                        HorizontalAlignment="Left"
+                        Background="#C8A96A"
+                        BorderThickness="0"
+                        Click="DetectTarkovWindowButton_Click"
+                        Content="Detect Tarkov window"
+                        Cursor="Hand"
+                        FontWeight="SemiBold"
+                        Foreground="#101416" />
+                    <TextBlock
+                        x:Name="TarkovWindowStatusText"
+                        Margin="0,10,0,0"
+                        FontSize="12"
+                        Foreground="{StaticResource SecondaryTextBrush}"
+                        Text="Checks only visible top-level windows of EscapeFromTarkov.exe."
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border
+                Grid.Column="2"
+                Padding="24"
+                Background="{StaticResource PanelBackgroundBrush}"
+                BorderBrush="{StaticResource PanelBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <StackPanel>
+                    <TextBlock
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Foreground="{StaticResource AccentBrush}"
+                        Text="CLIENT PIPELINE" />
+                    <TextBlock
+                        Margin="0,18,0,0"
+                        FontSize="22"
+                        FontWeight="SemiBold"
+                        Text="Hover boundary ready" />
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        Foreground="{StaticResource SecondaryTextBrush}"
+                        Text="A captured BGRA32 region can be passed to a cancellable recognizer. Classified uncertainty and failures are rendered through a non-activating click-through overlay."
+                        TextWrapping="Wrap" />
+                    <Button
+                        Margin="0,22,0,0"
+                        Padding="14,8"
+                        HorizontalAlignment="Left"
+                        Background="#C8A96A"
+                        BorderThickness="0"
+                        Click="PreviewOverlayButton_Click"
+                        Content="Preview overlay"
+                        Cursor="Hand"
+                        FontWeight="SemiBold"
+                        Foreground="#101416" />
+                    <TextBlock
+                        x:Name="OverlayPreviewStatusText"
+                        Margin="0,10,0,0"
+                        FontSize="12"
+                        Foreground="{StaticResource SecondaryTextBrush}"
+                        Text="Preview stays visible for three seconds."
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,24,0,0"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Foreground="{StaticResource AccentBrush}"
+                        Text="CURSOR TRACKING" />
+                    <Button
+                        x:Name="CursorTrackingButton"
+                        Margin="0,10,0,0"
+                        Padding="14,8"
+                        HorizontalAlignment="Left"
+                        Background="#C8A96A"
+                        BorderThickness="0"
+                        Click="CursorTrackingButton_Click"
+                        Content="Start cursor tracking"
+                        Cursor="Hand"
+                        FontWeight="SemiBold"
+                        Foreground="#101416" />
+                    <TextBlock
+                        x:Name="CursorTrackingStatusText"
+                        Margin="0,10,0,0"
+                        FontSize="12"
+                        Foreground="{StaticResource SecondaryTextBrush}"
+                        Text="Waits for an active Tarkov window before observing cursor dwell."
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <TextBlock
+            Grid.Row="3"
+            Margin="0,28,0,0"
+            FontSize="12"
+            Foreground="{StaticResource SecondaryTextBrush}"
+            Text="No game process access · No input automation · No network request on hover" />
+    </Grid>
+</Window>

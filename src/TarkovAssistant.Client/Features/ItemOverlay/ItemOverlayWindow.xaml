@@ -1,0 +1,78 @@
+<Window
+    x:Class="TarkovAssistant.Client.Features.ItemOverlay.ItemOverlayWindow"
+    x:ClassModifier="internal"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Width="360"
+    AllowsTransparency="True"
+    Background="Transparent"
+    Focusable="False"
+    ShowActivated="False"
+    ShowInTaskbar="False"
+    SizeToContent="Height"
+    Topmost="True"
+    WindowStyle="None">
+    <Border
+        Padding="16"
+        Background="#F21A2023"
+        BorderBrush="#5E6A64"
+        BorderThickness="1"
+        CornerRadius="7">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="14" />
+                <ColumnDefinition Width="56" />
+                <ColumnDefinition Width="14" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border
+                x:Name="ToneIndicator"
+                Background="#C8A96A"
+                CornerRadius="2" />
+
+            <Border
+                Grid.Column="2"
+                Width="56"
+                Height="56"
+                Background="#252D30"
+                CornerRadius="4">
+                <Image
+                    x:Name="ItemImage"
+                    Margin="4"
+                    Stretch="Uniform" />
+            </Border>
+
+            <StackPanel Grid.Column="4">
+                <TextBlock
+                    x:Name="TitleText"
+                    FontFamily="Segoe UI"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Foreground="#F2F5F3"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="SummaryText"
+                    Margin="0,5,0,0"
+                    FontFamily="Segoe UI"
+                    FontSize="13"
+                    Foreground="#D4DBD7"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="DetailText"
+                    Margin="0,7,0,0"
+                    FontFamily="Segoe UI"
+                    FontSize="12"
+                    Foreground="#9DA8A3"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="ConfidenceText"
+                    Margin="0,9,0,0"
+                    FontFamily="Cascadia Mono, Consolas"
+                    FontSize="11"
+                    Foreground="#C8A96A" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

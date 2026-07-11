@@ -6,6 +6,7 @@ Local-first assistant for Escape from Tarkov. The current backend slice provides
 
 - .NET 10 SDK
 - Docker Desktop for PostgreSQL and containerized startup
+- Windows 10 or later for the native WPF client
 
 ## Run locally
 
@@ -51,3 +52,21 @@ $env:ConnectionStrings__Database = "Host=localhost;Port=5432;Database=tarkov_ass
 ```
 
 The checked-in connection string contains local-only development credentials. Override it when using a different local PostgreSQL instance.
+
+## Windows client
+
+The native client is a separate WPF application and is not part of Docker Compose:
+
+```powershell
+dotnet run --project src/TarkovAssistant.Client
+```
+
+The current client is a runnable desktop shell. Its `BackendConnection` feature defines the future connection boundary and uses `http://localhost:5080` as the safe local default, but it does not send HTTP requests yet.
+
+Catalog images are read beneath `%LocalAppData%\TarkovAssistant\Catalog`. The file reader rejects paths outside that boundary, limits individual image size, and can validate SHA-256 hashes supplied by the synchronized catalog. Missing, unreadable, oversized, and hash-mismatched files are returned as classified results.
+
+The client detects the visible top-level window owned by `EscapeFromTarkov.exe` through documented Windows windowing APIs. It records physical-pixel bounds, foreground state, and a non-capturable minimized state without accessing game memory or injecting into the game. The shell exposes a manual detection check.
+
+The cursor tracker uses `GetCursorPos` to poll physical virtual-screen coordinates every 50 ms only while manually enabled. It resets when Tarkov is unavailable, minimized, backgrounded, or the cursor leaves the game window. After 250 ms within a three-pixel tolerance, it emits one recognition trigger and does not repeat it until the cursor moves or tracking is reset.
+
+The client also contains the contract for recognizing a hovered item from a BGRA32 capture and a non-activating click-through WPF overlay. The shell provides an overlay preview; it does not capture the game screen or implement an image-matching algorithm yet. Cursor dwell, `Windows.Graphics.Capture`, OpenCV recognition, catalog synchronization, local evaluation, and recommendation content remain separate feature slices.

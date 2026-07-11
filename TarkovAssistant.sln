@@ -1,9 +1,10 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TarkovAssistant.Backend", "src\TarkovAssistant.Backend\TarkovAssistant.Backend.csproj", "{8C00DD92-CC1C-4B70-8F15-52A609372A56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TarkovAssistant.Client", "src\TarkovAssistant.Client\TarkovAssistant.Client.csproj", "{3240B581-08A7-49F2-84A7-661FA3ADEC1F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,5 +16,9 @@ Global
 		{8C00DD92-CC1C-4B70-8F15-52A609372A56}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C00DD92-CC1C-4B70-8F15-52A609372A56}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C00DD92-CC1C-4B70-8F15-52A609372A56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3240B581-08A7-49F2-84A7-661FA3ADEC1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3240B581-08A7-49F2-84A7-661FA3ADEC1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3240B581-08A7-49F2-84A7-661FA3ADEC1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3240B581-08A7-49F2-84A7-661FA3ADEC1F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
