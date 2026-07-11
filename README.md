@@ -5,11 +5,12 @@ Local-first assistant for Escape from Tarkov. The current backend slice provides
 ## Requirements
 
 - .NET 10 SDK
-- Docker Desktop for containerized startup
+- Docker Desktop for PostgreSQL and containerized startup
 
 ## Run locally
 
 ```powershell
+docker compose up database -d
 dotnet restore TarkovAssistant.sln
 dotnet run --project src/TarkovAssistant.Backend
 ```
@@ -22,7 +23,7 @@ The API listens on `http://localhost:5080`. Opening this address in a browser re
 docker compose up --build
 ```
 
-Docker maps host port `5080` to container port `8080`. Use `http://localhost:5080` from the host; `http://localhost:8080` is only the container's internal listening port and is not published directly.
+Docker maps backend host port `5080` to container port `8080` and PostgreSQL to host port `5432`. The backend waits for PostgreSQL and applies EF Core migrations during startup. Use `http://localhost:5080` from the host; `http://localhost:8080` is only the container's internal listening port and is not published directly.
 
 ## Endpoints
 
@@ -46,4 +47,7 @@ Configuration can be overridden with environment variables:
 ```powershell
 $env:TarkovDev__BaseUrl = "https://api.tarkov.dev/graphql"
 $env:TarkovDev__UserAgent = "eft-assistant/1.0"
+$env:ConnectionStrings__Database = "Host=localhost;Port=5432;Database=tarkov_assistant;Username=tarkov_assistant;Password=tarkov_assistant"
 ```
+
+The checked-in connection string contains local-only development credentials. Override it when using a different local PostgreSQL instance.

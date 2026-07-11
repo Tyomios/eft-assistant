@@ -32,3 +32,7 @@ indent_size = 2
 
 [*.sln]
 indent_style = tab
+
+# EF Core owns migration syntax; keep application analyzers focused on hand-written code.
+[src/TarkovAssistant.Backend/Database/Migrations/*.cs]
+generated_code = true
