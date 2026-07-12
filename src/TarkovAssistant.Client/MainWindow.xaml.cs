@@ -1,10 +1,12 @@
 using System.Windows;
 using System.Windows.Input;
 using TarkovAssistant.Client.Features.CatalogSync;
+using TarkovAssistant.Client.Features.CatalogCache;
 using TarkovAssistant.Client.Features.CursorTracking;
 using TarkovAssistant.Client.Features.GameWindowDetection;
 using TarkovAssistant.Client.Features.InventoryGridDetection;
 using TarkovAssistant.Client.Features.ItemOverlay;
+using TarkovAssistant.Client.Features.ItemRecognition;
 using TarkovAssistant.Client.Features.ScreenCapture;
 
 namespace TarkovAssistant.Client;
@@ -19,6 +21,7 @@ internal sealed partial class MainWindow : Window, IDisposable
     private readonly TarkovCursorHoverTracker _cursorHoverTracker;
     private readonly TarkovGameWindowDetector _gameWindowDetector;
     private readonly WpfItemOverlay _itemOverlay;
+    private readonly HoverRecognitionCoordinator _hoverRecognitionCoordinator;
     private readonly StashGridDetector _stashGridDetector;
     private readonly WindowsGraphicsCaptureRegionCapturer _screenCapturer;
     private CancellationTokenSource? _cursorTrackingCancellation;
@@ -39,6 +42,14 @@ internal sealed partial class MainWindow : Window, IDisposable
             new WindowsCursorPositionProvider(),
             new CursorTrackingOptions());
         _itemOverlay = new WpfItemOverlay(Dispatcher);
+        var catalogCacheOptions = new CatalogCacheOptions();
+        _hoverRecognitionCoordinator = new HoverRecognitionCoordinator(
+            new DeterministicHoveredItemRecognizer(
+                new SqliteCatalogGridImageIndex(catalogCacheOptions),
+                new FileCatalogImageCache(catalogCacheOptions),
+                new HoverRecognitionOptions()),
+            _itemOverlay,
+            new HoverRecognitionOptions());
         _screenCapturer = new WindowsGraphicsCaptureRegionCapturer(new SmallRegionCaptureOptions());
         _stashGridDetector = new StashGridDetector(new StashGridDetectorOptions());
     }
@@ -180,7 +191,19 @@ internal sealed partial class MainWindow : Window, IDisposable
                     && update.Position is { } cursorPosition)
                 {
                     var capture = await _screenCapturer.CaptureAsync(gameWindow, cursorPosition, cancellationSource.Token);
-                    CursorTrackingStatusText.Text = DescribeCaptureAndGrid(capture, cursorPosition);
+                    var grid = DescribeCaptureAndGrid(capture, cursorPosition, out var itemCell);
+                    if (itemCell is null || capture.Region is null)
+                    {
+                        CursorTrackingStatusText.Text = grid;
+                        continue;
+                    }
+
+                    var recognition = await _hoverRecognitionCoordinator.ProcessAsync(
+                        new HoverRecognitionRequest(cursorPosition, capture.Region, itemCell.Value),
+                        cancellationSource.Token);
+                    CursorTrackingStatusText.Text = recognition.State == HoverProcessingState.Displayed
+                        ? "Local item recognition completed."
+                        : recognition.Detail ?? "Local item recognition could not be completed.";
                 }
             }
         }
@@ -203,7 +226,6 @@ internal sealed partial class MainWindow : Window, IDisposable
         return update.State switch
         {
             CursorTrackingState.GameUnavailable => update.Detail ?? "The Tarkov game window is unavailable.",
-            CursorTrackingState.GameInactive => update.Detail ?? "The Tarkov window is not active.",
             CursorTrackingState.CursorUnavailable => update.Detail ?? "The cursor position is unavailable.",
             CursorTrackingState.OutsideGameWindow => "The cursor is outside the Tarkov window.",
             CursorTrackingState.WaitingForDwell => $"Cursor dwell: {update.StableFor.TotalMilliseconds:F0} ms.",
@@ -231,18 +253,26 @@ internal sealed partial class MainWindow : Window, IDisposable
         };
     }
 
-    private string DescribeCaptureAndGrid(ScreenCaptureResult capture, ScreenPoint cursorPosition)
+    private string DescribeCaptureAndGrid(
+        ScreenCaptureResult capture,
+        ScreenPoint cursorPosition,
+        out StashGridCell? itemCell)
     {
+        itemCell = null;
         if (capture.State != ScreenCaptureState.Captured || capture.Region is null)
         {
             return capture.Detail ?? "The cursor region could not be captured.";
         }
 
         var grid = _stashGridDetector.Detect(capture.Region, cursorPosition);
+        if (grid.State == StashGridDetectionState.ItemCellDetected && grid.Cell is { } cell)
+        {
+            itemCell = cell;
+            return $"Stash item cell detected: {cell.CellWidth}×{cell.CellHeight} physical pixels; confidence {grid.Confidence:P0}.";
+        }
+
         return grid.State switch
         {
-            StashGridDetectionState.ItemCellDetected when grid.Cell is { } cell =>
-                $"Stash item cell detected: {cell.CellWidth}×{cell.CellHeight} physical pixels; confidence {grid.Confidence:P0}.",
             StashGridDetectionState.EmptyCell => "Stash grid detected, but the hovered cell is empty.",
             StashGridDetectionState.OutsideStash => "Cursor is not over a supported stash grid area.",
             _ => grid.Detail ?? "Stash grid geometry is inconclusive.",

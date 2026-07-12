@@ -6,7 +6,7 @@ using TarkovAssistant.Client.Features.GameWindowDetection;
 namespace TarkovAssistant.Client.Features.CursorTracking;
 
 /// <summary>
-/// Polls the physical cursor and emits one recognition trigger after dwell inside the active Tarkov window.
+/// Polls the physical cursor and emits one recognition trigger after dwell inside a visible Tarkov window.
 /// </summary>
 internal sealed class TarkovCursorHoverTracker : ITarkovCursorHoverTracker
 {
@@ -54,19 +54,6 @@ internal sealed class TarkovCursorHoverTracker : ITarkovCursorHoverTracker
             {
                 dwellEvaluator.Reset();
                 yield return GameUnavailable(windowResult);
-                continue;
-            }
-
-            if (!gameWindow.IsForeground)
-            {
-                dwellEvaluator.Reset();
-                yield return new CursorTrackingUpdate(
-                    CursorTrackingState.GameInactive,
-                    null,
-                    gameWindow,
-                    TimeSpan.Zero,
-                    false,
-                    "The Tarkov window is not the foreground window.");
                 continue;
             }
 
