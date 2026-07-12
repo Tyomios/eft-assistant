@@ -4,6 +4,7 @@ using Polly;
 using Scalar.AspNetCore;
 using TarkovAssistant.Backend.Configuration;
 using TarkovAssistant.Backend.Database;
+using TarkovAssistant.Backend.Features.DataImport;
 using TarkovAssistant.Backend.Infrastructure;
 using TarkovAssistant.Backend.Integrations.TarkovDev;
 
@@ -53,6 +54,7 @@ builder.Services.AddDbContext<TarkovAssistantDbContext>(options => options.UseNp
 builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+builder.Services.AddScoped<ImportCatalogHandler>();
 
 var app = builder.Build();
 
