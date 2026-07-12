@@ -31,6 +31,11 @@ Docker maps backend host port `5080` to container port `8080` and PostgreSQL to 
 - `GET /` — redirects to the Scalar API reference
 - `GET /scalar/v1` — interactive API reference
 - `GET /health`
+- `GET /api/catalog/version`
+- `GET /api/catalog/items?version={version}`
+- `GET /api/catalog/changes?sinceVersion={version}`
+- `POST /api/data-import/run`
+- `GET /api/data-import/status`
 - `GET /api/tarkov/items`
 - `GET /api/tarkov/items/{id}`
 - `GET /api/tarkov/weapons`
@@ -42,6 +47,13 @@ Docker maps backend host port `5080` to container port `8080` and PostgreSQL to 
 Collection endpoints accept `language`, `gameMode`, `limit`, and `offset`. The items endpoint also accepts `itemType`. Supported game modes are `regular` and `pve`; page size is limited to 500 records.
 
 Every matched endpoint writes a single structured completion event to the console with its method, path, endpoint name, status code, duration, and trace ID. Failures from Tarkov.dev are returned as RFC 9457 problem details. HTTP retries use exponential backoff with jitter and are bounded by attempt and total timeouts plus a circuit breaker.
+
+Before the client can synchronize a catalog, start an import. It retrieves every usable item from Tarkov.dev, stores the recognition metadata and source image URLs in PostgreSQL, and publishes a new catalog version only when its content changes:
+
+```powershell
+Invoke-RestMethod -Method Post http://localhost:5080/api/data-import/run
+Invoke-RestMethod http://localhost:5080/api/data-import/status
+```
 
 Configuration can be overridden with environment variables:
 
@@ -61,7 +73,7 @@ The native client is a separate WPF application and is not part of Docker Compos
 dotnet run --project src/TarkovAssistant.Client
 ```
 
-The current client is a runnable desktop shell. Its `BackendConnection` feature defines the future connection boundary and uses `http://localhost:5080` as the safe local default, but it does not send HTTP requests yet.
+The client can manually synchronize the catalog from `http://localhost:5080`. It keeps one SQLite index at `%LocalAppData%\TarkovAssistant\Catalog\catalog.db` and updates it in a transaction only after required images have downloaded. Existing image files are retained and downloaded again only when their source URL changes or the local file is missing. The backend returns no records when the client's catalog version is current.
 
 Catalog images are read beneath `%LocalAppData%\TarkovAssistant\Catalog`. The file reader rejects paths outside that boundary, limits individual image size, and can validate SHA-256 hashes supplied by the synchronized catalog. Missing, unreadable, oversized, and hash-mismatched files are returned as classified results.
 

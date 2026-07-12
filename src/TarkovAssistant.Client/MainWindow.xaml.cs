@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using TarkovAssistant.Client.Features.CatalogSync;
 using TarkovAssistant.Client.Features.CursorTracking;
 using TarkovAssistant.Client.Features.GameWindowDetection;
 using TarkovAssistant.Client.Features.InventoryGridDetection;
@@ -14,12 +15,14 @@ namespace TarkovAssistant.Client;
 internal sealed partial class MainWindow : Window, IDisposable
 {
     private readonly CancellationTokenSource _shutdown = new();
+    private readonly CatalogSynchronizer _catalogSynchronizer;
     private readonly TarkovCursorHoverTracker _cursorHoverTracker;
     private readonly TarkovGameWindowDetector _gameWindowDetector;
     private readonly WpfItemOverlay _itemOverlay;
     private readonly StashGridDetector _stashGridDetector;
     private readonly WindowsGraphicsCaptureRegionCapturer _screenCapturer;
     private CancellationTokenSource? _cursorTrackingCancellation;
+    private CancellationTokenSource? _catalogSyncCancellation;
     private bool _isDisposed;
     private CancellationTokenSource? _previewCancellation;
 
@@ -29,6 +32,7 @@ internal sealed partial class MainWindow : Window, IDisposable
     public MainWindow()
     {
         InitializeComponent();
+        _catalogSynchronizer = new CatalogSynchronizer(new CatalogSyncOptions());
         _gameWindowDetector = new TarkovGameWindowDetector(new TarkovGameWindowDetectionOptions());
         _cursorHoverTracker = new TarkovCursorHoverTracker(
             _gameWindowDetector,
@@ -52,6 +56,10 @@ internal sealed partial class MainWindow : Window, IDisposable
         _isDisposed = true;
         _shutdown.Cancel();
         StopCursorTracking();
+        _catalogSyncCancellation?.Cancel();
+        _catalogSyncCancellation?.Dispose();
+        _catalogSyncCancellation = null;
+        _catalogSynchronizer.Dispose();
         _screenCapturer.Dispose();
         _previewCancellation?.Cancel();
         _previewCancellation?.Dispose();
@@ -116,6 +124,38 @@ internal sealed partial class MainWindow : Window, IDisposable
         TarkovWindowStatusText.Text = DescribeWindowDetection(result);
     }
 
+    private async void SynchronizeCatalogButton_Click(object sender, RoutedEventArgs eventArgs)
+    {
+        if (_catalogSyncCancellation is not null)
+        {
+            return;
+        }
+
+        var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token);
+        _catalogSyncCancellation = cancellationSource;
+        SynchronizeCatalogButton.IsEnabled = false;
+        CatalogSyncStatusText.Text = "Synchronizing catalog and images…";
+
+        try
+        {
+            var result = await _catalogSynchronizer.SynchronizeAsync(cancellationSource.Token);
+            CatalogSyncStatusText.Text = DescribeCatalogSynchronization(result);
+        }
+        catch (OperationCanceledException) when (cancellationSource.IsCancellationRequested)
+        {
+            CatalogSyncStatusText.Text = "Catalog synchronization cancelled.";
+        }
+        finally
+        {
+            if (ReferenceEquals(_catalogSyncCancellation, cancellationSource))
+            {
+                _catalogSyncCancellation = null;
+                cancellationSource.Dispose();
+                SynchronizeCatalogButton.IsEnabled = true;
+            }
+        }
+    }
+
     private async void CursorTrackingButton_Click(object sender, RoutedEventArgs eventArgs)
     {
         if (_cursorTrackingCancellation is not null)
@@ -177,6 +217,18 @@ internal sealed partial class MainWindow : Window, IDisposable
     private void StopCursorTracking()
     {
         _cursorTrackingCancellation?.Cancel();
+    }
+
+    private static string DescribeCatalogSynchronization(CatalogSyncResult result)
+    {
+        return result.State switch
+        {
+            CatalogSyncState.Updated => $"Catalog version {result.Version} is ready for offline use.",
+            CatalogSyncState.UpToDate => $"Catalog version {result.Version} is already current.",
+            CatalogSyncState.CatalogUnavailable => result.Detail ?? "The backend has not published a catalog yet.",
+            CatalogSyncState.Unavailable => result.Detail ?? "The local backend is unavailable.",
+            _ => result.Detail ?? "Catalog synchronization failed.",
+        };
     }
 
     private string DescribeCaptureAndGrid(ScreenCaptureResult capture, ScreenPoint cursorPosition)
