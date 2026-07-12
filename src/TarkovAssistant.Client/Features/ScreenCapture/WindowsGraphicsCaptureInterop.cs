@@ -37,7 +37,7 @@ internal static partial class WindowsGraphicsCaptureInterop
                 RoGetActivationFactory(classNameHandle, GraphicsCaptureItemInteropInterfaceId, out activationFactory));
             var factory = (IGraphicsCaptureItemInterop)Marshal.GetObjectForIUnknown(activationFactory);
             Marshal.ThrowExceptionForHR(factory.CreateForWindow(windowHandle, GraphicsCaptureItemRuntimeClassId, out itemPointer));
-            return (GraphicsCaptureItem)Marshal.GetObjectForIUnknown(itemPointer);
+            return WinRT.MarshalInspectable<GraphicsCaptureItem>.FromAbi(itemPointer);
         }
         finally
         {
@@ -84,7 +84,7 @@ internal static partial class WindowsGraphicsCaptureInterop
             var dxgiDeviceInterfaceId = new Guid("54EC77FA-1377-44E6-8C32-88FD5F44C84C");
             Marshal.ThrowExceptionForHR(Marshal.QueryInterface(d3dDevice, in dxgiDeviceInterfaceId, out dxgiDevice));
             Marshal.ThrowExceptionForHR(CreateDirect3D11DeviceFromDXGIDevice(dxgiDevice, out direct3DDevice));
-            return (IDirect3DDevice)Marshal.GetObjectForIUnknown(direct3DDevice);
+            return WinRT.MarshalInspectable<IDirect3DDevice>.FromAbi(direct3DDevice);
         }
         finally
         {
@@ -144,6 +144,7 @@ internal static partial class WindowsGraphicsCaptureInterop
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IGraphicsCaptureItemInterop
     {
+        [PreserveSig]
         public int CreateForWindow(nint windowHandle, in Guid interfaceId, out nint result);
     }
 #pragma warning restore SYSLIB1096

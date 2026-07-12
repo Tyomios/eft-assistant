@@ -28,9 +28,9 @@ internal sealed class HoverRecognitionCoordinator
         ArgumentNullException.ThrowIfNull(overlay);
         ArgumentNullException.ThrowIfNull(options);
 
-        if (options.MinimumStrongConfidence is < 0 or > 1)
+        if (options.MinimumStrongConfidence is < 0 or > 1 || options.MaximumAlternatives <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(options), "The strong confidence threshold must be between zero and one.");
+            throw new ArgumentOutOfRangeException(nameof(options), "The recognition settings are invalid.");
         }
 
         _recognizer = recognizer;
@@ -48,6 +48,14 @@ internal sealed class HoverRecognitionCoordinator
         HoverRecognitionRequest request,
         CancellationToken cancellationToken)
     {
+        var progressOverlayResult = await _overlay
+            .ShowAsync(CreateRecognitionInProgressContent(), request.CursorPosition, CancellationToken.None)
+            .ConfigureAwait(false);
+        if (progressOverlayResult.State != OverlayOperationState.Completed)
+        {
+            return new HoverProcessingResult(HoverProcessingState.OverlayFailed, progressOverlayResult.Detail);
+        }
+
         HoverRecognitionResult recognition;
         try
         {
@@ -98,6 +106,17 @@ internal sealed class HoverRecognitionCoordinator
             "Move the cursor away and try again. The client will continue using only local data.",
             null,
             OverlayTone.Error,
+            ReadOnlyMemory<byte>.Empty);
+    }
+
+    private static ItemOverlayContent CreateRecognitionInProgressContent()
+    {
+        return new ItemOverlayContent(
+            "Recognizing item",
+            "Searching the local catalog…",
+            "No game data is read and no network request is being made.",
+            null,
+            OverlayTone.Informational,
             ReadOnlyMemory<byte>.Empty);
     }
 

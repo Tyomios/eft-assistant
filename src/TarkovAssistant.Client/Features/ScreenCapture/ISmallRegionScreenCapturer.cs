@@ -11,7 +11,7 @@ internal interface ISmallRegionScreenCapturer : IDisposable
     /// <summary>
     /// Captures a BGRA32 region from the given game window without capturing the desktop.
     /// </summary>
-    /// <param name="gameWindow">The current foreground Tarkov window and client bounds.</param>
+    /// <param name="gameWindow">The current visible Tarkov window and client bounds.</param>
     /// <param name="cursorPosition">The physical virtual-screen position to center in the returned region.</param>
     /// <param name="cancellationToken">Cancels the pending frame wait.</param>
     /// <returns>A classified capture result.</returns>

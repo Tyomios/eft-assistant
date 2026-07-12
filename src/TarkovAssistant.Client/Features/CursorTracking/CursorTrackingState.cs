@@ -8,13 +8,10 @@ internal enum CursorTrackingState
     /// <summary>The Tarkov window is absent, minimized, or could not be inspected.</summary>
     GameUnavailable,
 
-    /// <summary>The Tarkov window is present but does not own the foreground focus.</summary>
-    GameInactive,
-
     /// <summary>The cursor is outside the Tarkov window bounds.</summary>
     OutsideGameWindow,
 
-    /// <summary>The cursor is inside the active Tarkov window and waiting for dwell.</summary>
+    /// <summary>The cursor is inside the visible Tarkov window and waiting for dwell.</summary>
     WaitingForDwell,
 
     /// <summary>The cursor has satisfied dwell and a recognition attempt may begin.</summary>

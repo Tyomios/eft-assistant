@@ -96,6 +96,10 @@ internal sealed partial class WindowsGraphicsCaptureRegionCapturer : ISmallRegio
         {
             return new ScreenCaptureResult(ScreenCaptureState.Failed, null, "Windows rejected the capture request for the current game window.");
         }
+        catch (InvalidCastException)
+        {
+            return new ScreenCaptureResult(ScreenCaptureState.Failed, null, "Windows could not initialize capture for the current game window.");
+        }
         catch (UnauthorizedAccessException)
         {
             return new ScreenCaptureResult(ScreenCaptureState.Failed, null, "Windows denied access to the game capture surface.");
