@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using TarkovAssistant.Client.Features.CursorTracking;
 
 namespace TarkovAssistant.Client.Features.GameWindowDetection;
 
@@ -70,6 +71,31 @@ internal static partial class NativeTarkovWindowMethods
             rectangle.Bottom - rectangle.Top);
     }
 
+    internal static PhysicalScreenRectangle GetClientBounds(nint windowHandle)
+    {
+        if (!GetClientRect(windowHandle, out var rectangle))
+        {
+            throw new Win32Exception(Marshal.GetLastPInvokeError(), "The game client bounds could not be read.");
+        }
+
+        var origin = new NativeCursorPoint { X = rectangle.Left, Y = rectangle.Top };
+        if (!ClientToScreen(windowHandle, ref origin))
+        {
+            throw new Win32Exception(Marshal.GetLastPInvokeError(), "The game client origin could not be converted to screen coordinates.");
+        }
+
+        return new PhysicalScreenRectangle(
+            origin.X,
+            origin.Y,
+            rectangle.Right - rectangle.Left,
+            rectangle.Bottom - rectangle.Top);
+    }
+
+    internal static bool IsWindow(nint windowHandle)
+    {
+        return IsWindowNative(windowHandle);
+    }
+
     internal static nint GetForegroundWindow()
     {
         return GetForegroundWindowNative();
@@ -102,6 +128,18 @@ internal static partial class NativeTarkovWindowMethods
     [LibraryImport("user32.dll", EntryPoint = "GetWindowRect", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetWindowRectangle(nint windowHandle, out NativeWindowRectangle rectangle);
+
+    [LibraryImport("user32.dll", EntryPoint = "GetClientRect", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GetClientRect(nint windowHandle, out NativeWindowRectangle rectangle);
+
+    [LibraryImport("user32.dll", EntryPoint = "ClientToScreen", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool ClientToScreen(nint windowHandle, ref NativeCursorPoint point);
+
+    [LibraryImport("user32.dll", EntryPoint = "IsWindow")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool IsWindowNative(nint windowHandle);
 
     [LibraryImport("user32.dll", EntryPoint = "GetForegroundWindow")]
     private static partial nint GetForegroundWindowNative();

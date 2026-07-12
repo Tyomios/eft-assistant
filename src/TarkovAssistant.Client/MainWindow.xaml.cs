@@ -2,7 +2,9 @@ using System.Windows;
 using System.Windows.Input;
 using TarkovAssistant.Client.Features.CursorTracking;
 using TarkovAssistant.Client.Features.GameWindowDetection;
+using TarkovAssistant.Client.Features.InventoryGridDetection;
 using TarkovAssistant.Client.Features.ItemOverlay;
+using TarkovAssistant.Client.Features.ScreenCapture;
 
 namespace TarkovAssistant.Client;
 
@@ -15,6 +17,8 @@ internal sealed partial class MainWindow : Window, IDisposable
     private readonly TarkovCursorHoverTracker _cursorHoverTracker;
     private readonly TarkovGameWindowDetector _gameWindowDetector;
     private readonly WpfItemOverlay _itemOverlay;
+    private readonly StashGridDetector _stashGridDetector;
+    private readonly WindowsGraphicsCaptureRegionCapturer _screenCapturer;
     private CancellationTokenSource? _cursorTrackingCancellation;
     private bool _isDisposed;
     private CancellationTokenSource? _previewCancellation;
@@ -31,6 +35,8 @@ internal sealed partial class MainWindow : Window, IDisposable
             new WindowsCursorPositionProvider(),
             new CursorTrackingOptions());
         _itemOverlay = new WpfItemOverlay(Dispatcher);
+        _screenCapturer = new WindowsGraphicsCaptureRegionCapturer(new SmallRegionCaptureOptions());
+        _stashGridDetector = new StashGridDetector(new StashGridDetectorOptions());
     }
 
     /// <summary>
@@ -46,6 +52,7 @@ internal sealed partial class MainWindow : Window, IDisposable
         _isDisposed = true;
         _shutdown.Cancel();
         StopCursorTracking();
+        _screenCapturer.Dispose();
         _previewCancellation?.Cancel();
         _previewCancellation?.Dispose();
         _previewCancellation = null;
@@ -128,6 +135,13 @@ internal sealed partial class MainWindow : Window, IDisposable
             await foreach (var update in _cursorHoverTracker.TrackAsync(cancellationSource.Token))
             {
                 CursorTrackingStatusText.Text = DescribeCursorTracking(update);
+                if (update.ShouldTriggerRecognition
+                    && update.GameWindow is { } gameWindow
+                    && update.Position is { } cursorPosition)
+                {
+                    var capture = await _screenCapturer.CaptureAsync(gameWindow, cursorPosition, cancellationSource.Token);
+                    CursorTrackingStatusText.Text = DescribeCaptureAndGrid(capture, cursorPosition);
+                }
             }
         }
         catch (OperationCanceledException) when (cancellationSource.IsCancellationRequested)
@@ -163,6 +177,24 @@ internal sealed partial class MainWindow : Window, IDisposable
     private void StopCursorTracking()
     {
         _cursorTrackingCancellation?.Cancel();
+    }
+
+    private string DescribeCaptureAndGrid(ScreenCaptureResult capture, ScreenPoint cursorPosition)
+    {
+        if (capture.State != ScreenCaptureState.Captured || capture.Region is null)
+        {
+            return capture.Detail ?? "The cursor region could not be captured.";
+        }
+
+        var grid = _stashGridDetector.Detect(capture.Region, cursorPosition);
+        return grid.State switch
+        {
+            StashGridDetectionState.ItemCellDetected when grid.Cell is { } cell =>
+                $"Stash item cell detected: {cell.CellWidth}×{cell.CellHeight} physical pixels; confidence {grid.Confidence:P0}.",
+            StashGridDetectionState.EmptyCell => "Stash grid detected, but the hovered cell is empty.",
+            StashGridDetectionState.OutsideStash => "Cursor is not over a supported stash grid area.",
+            _ => grid.Detail ?? "Stash grid geometry is inconclusive.",
+        };
     }
 
     private static string DescribeWindowDetection(GameWindowDetectionResult result)

@@ -7,6 +7,7 @@ namespace TarkovAssistant.Client.Features.GameWindowDetection;
 /// <param name="ProcessId">The owning game process identifier.</param>
 /// <param name="Title">The current native window title.</param>
 /// <param name="Bounds">The physical-pixel outer window bounds in virtual desktop coordinates.</param>
+/// <param name="ClientBounds">The physical-pixel client-area bounds that Windows.Graphics.Capture returns.</param>
 /// <param name="IsForeground">Whether the window owns the foreground input focus.</param>
 /// <param name="IsMinimized">Whether Windows reports the window as minimized.</param>
 internal readonly record struct TarkovGameWindow(
@@ -14,5 +15,6 @@ internal readonly record struct TarkovGameWindow(
     int ProcessId,
     string Title,
     PhysicalScreenRectangle Bounds,
+    PhysicalScreenRectangle ClientBounds,
     bool IsForeground,
     bool IsMinimized);
