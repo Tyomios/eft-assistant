@@ -56,6 +56,7 @@ internal sealed class TarkovGameWindowDetector : ITarkovGameWindowDetector
                         processId,
                         NativeTarkovWindowMethods.GetTitle(windowHandle),
                         NativeTarkovWindowMethods.GetBounds(windowHandle),
+                        NativeTarkovWindowMethods.GetClientBounds(windowHandle),
                         windowHandle == foregroundWindow,
                         NativeTarkovWindowMethods.IsMinimized(windowHandle)));
             }

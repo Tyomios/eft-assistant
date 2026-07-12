@@ -84,7 +84,7 @@ internal sealed class TarkovCursorHoverTracker : ITarkovCursorHoverTracker
                 continue;
             }
 
-            if (!gameWindow.Bounds.Contains(cursorPosition))
+            if (!gameWindow.ClientBounds.Contains(cursorPosition))
             {
                 dwellEvaluator.Reset();
                 yield return new CursorTrackingUpdate(
